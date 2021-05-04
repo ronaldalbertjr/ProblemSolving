@@ -339,7 +339,13 @@ busca_a_estrela(Nodo) :-
     write('É impossível resolver o problema do 15-puzzle para esse tabuleiro').
 
 %Adicionando a validação se é possível resolver o problema do 15-puzzle para determinado tabuleiro
-%
+%Um dos teoremas para o problema do 15-puzzle é de que o número de passos até chegar a determinada solução
+%não é fixado, porém a sua paridade sim, o que significa que existem infinitas maneiras diferentes, de se levar uma peça
+%até determinada posição no tabuleiro, no entanto, o número de passos de cada um desses possíveis caminhos terão a mesma paridade
+%ou seja, ou todos serão pares ou impares.
+%Dessa forma, para descobrir se o problema é solucionável, calculamos a paridade do número de passos necessários para o levar o espaço em branco
+%até a sua posição no tabuleiro objetivo
+%A seguinte função calcula essa paridade
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, -1, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, -1, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, _, -1, _], 1) :- !.
@@ -350,6 +356,8 @@ posicao_b([_, _, _, _, _, _, -1, _, _, _, _, _, _, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, -1, _, _, _, _, _, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], 0).
 
+%Agora calculamos o número de inversões das casas assumindo um tabuleiro relaxado, onde podemos mover as peças livremente, uma vez que a paridade é fixa,
+%a paridade para mover as peças no tabuleiro original será a mesma que no tabuleiro relaxado.
 count_inversions(-1, _, 0).
 count_inversions(_, [], 0).
 count_inversions(X, [-1 | T], R):-
@@ -364,6 +372,8 @@ count_inversions(X, [H | T], R):-
     count_inversions(X, T, R1),
     R is R1+1.
 
+%Tudo que resta é comparar a paridade do número de inversões com a paridade do número de passos para levar o espaço em branco até a sua posição objetivo
+%se essa paridade for diferente o tabuleiro tem solução.
 checar_se_existe_caminho([], R, PosB) :-
     R1 is PosB mod 2,
     R2 is R mod 2,
