@@ -1,7 +1,7 @@
 objetivo([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, -1]]).
 
 %Movimentos possíveis para a primeira casa.
-acao([[A, -1, B, C], [D, E, F, G], [H, I, J, K], [L, M, N, O]], 
+acao([[A, -1, B, C], [D, E, F, G], [H, I, J, K], [L, M, N, O]],
      direita11, 
      [[-1, A, B, C], [D, E, F, G], [H, I, J, K], [L, M, N, O]]).
 acao([[A, B, C, D], [-1, E, F, G], [H, I, J, K], [L, M, N, O]], 
@@ -177,6 +177,28 @@ acao([[B, C, D, E], [F, G, H, I], [J, K, L, -1], [M, N, O, A]],
      cima44, 
      [[B, C, D, E], [F, G, H, I], [J, K, L, A], [M, N, O, -1]]).
 
+diferente(A, B, Res, ResFinal) :-
+    not(=(A,  B)), !,
+    ResFinal is Res + 1.
+diferente(A, A, Res, Res).
+
+h_fora_do_lugar([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, _]], Res) :-
+    diferente(A, 1, 0, Res2),
+    diferente(B, 2, Res2, Res3),
+    diferente(C, 3, Res3, Res4),
+    diferente(D, 4, Res4, Res5),
+    diferente(E, 5, Res5, Res6),
+    diferente(F, 6, Res6, Res7),
+    diferente(G, 7, Res7, Res8),
+    diferente(H, 8, Res8, Res9),
+    diferente(I, 9, Res9, Res10),
+    diferente(J, 10, Res10, Res11),
+    diferente(K, 11, Res11, Res12),
+    diferente(L, 12, Res12, Res13),
+    diferente(M, 13, Res13, Res14),
+    diferente(N, 14, Res14, Res15),
+    diferente(O, 15, Res15, Res).
+
 final_pos(1, (1,1)).
 final_pos(2, (1,2)).
 final_pos(3, (1,3)).
@@ -218,23 +240,29 @@ h_man([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, P]], Res) :-
     dist_man((4,3), O, Dist_O),
     dist_man((4,4), P, Dist_P),
     Res is Dist_A + Dist_B + Dist_C + Dist_D + Dist_E + Dist_F + Dist_G + Dist_H + Dist_I + Dist_J + Dist_K + Dist_L + Dist_M + Dist_N + Dist_O + Dist_P.
-    
-vizinho(N, FilhosN) :- 
-    findall(Y, acao(N, _, Y), FilhosN).
+
+gerar_vizinho_com_custo([], _, []).
+gerar_vizinho_com_custo([H | T], C, [[H, R]| T1]) :-
+    R is C + 1,
+    gerar_vizinho_com_custo(T, C, T1).
+
+vizinho([N, C], FilhosN) :- 
+    findall(Y, acao(N, _, Y), FN),
+    gerar_vizinho_com_custo(FN, C, FilhosN).
 
 diffLists([], _, []) :- !.
-diffLists([H1 | T1], RL, [H1 | T]) :- not(member(H1, RL)), !, diffLists(T1, RL, T).
-diffLists([H1 | T1], RL, L) :- member(H1, RL), !, diffLists(T1, RL, L).
+diffLists([[N1, F1] | T1], RL, [[N1, F1] | T]) :- not(member([N1, _], RL)), !, diffLists(T1, RL, T).
+diffLists([[N1, _] | T1], RL, L) :- member([N1, _], RL), !, diffLists(T1, RL, L).
 
-
-mais_barato(N1, N2) :-
+mais_barato([N1, Custo1], [N2, Custo2]) :-
     h_man(N1, H1),
     h_man(N2, H2),
-    H1 < H2.
+    Custo1 + H1 < Custo2 + H2.
 
 ordenar(Nodo, [], [Nodo]).
 ordenar(Nodo,[H|T],[Nodo, H|T]) :- mais_barato(Nodo, H), !.
 ordenar(Nodo,[Nodo1|R],[Nodo1|S]) :- ordenar(Nodo,R,S), !.
+
 adicionar_a_fronteira([], F3, F3).    
 adicionar_a_fronteira([H | T], F1, F3) :-
     ordenar(H, F1, F2), 
@@ -246,11 +274,6 @@ encontrar_pai(Nodo, [H | T], PaiNodo) :-
     not(=(H, (Nodo, PaiNodo))),
     encontrar_pai(Nodo, T, PaiNodo).
 
-escrever_lista([]).
-escrever_lista([H | T]) :-
-    write(H), nl,
-    escrever_lista(T).
-
 gerar_caminho(Nodo, Pais, Caminho) :-
     not(encontrar_pai(Nodo, Pais, _)),
     escrever_lista(Caminho).
@@ -260,12 +283,17 @@ gerar_caminho(Nodo, Pais, Caminho) :-
     append([Acao], Caminho, Caminho2),
     gerar_caminho(PaiNodo, Pais, Caminho2), !.
 
-adicionar_pais(_, [], Pais, Pais).
-adicionar_pais(Nodo, [H | T], Pais, Pais3) :-
-    append([(H, Nodo)], Pais, Pais2),
-    adicionar_pais(Nodo, T, Pais2, Pais3).
+escrever_lista([]).
+escrever_lista([H | T]) :-
+    write(H), nl,
+    escrever_lista(T).
 
-buscar_a_estrela([Nodo | _], _, Pais, N) :- 
+adicionar_pais(_, [], Pais, Pais).
+adicionar_pais([Nodo, Custo], [[H, _] | T], Pais, Pais3) :-
+    append([(H, Nodo)], Pais, Pais2),
+    adicionar_pais([Nodo, Custo], T, Pais2, Pais3).
+
+buscar_a_estrela([[Nodo, _] | _], _, Pais, N) :- 
     objetivo(Nodo),
     gerar_caminho(Nodo, Pais, []),
     write('Foram gerados '), write(N), write(' Nó(s)').
@@ -280,4 +308,4 @@ buscar_a_estrela([Nodo | F1], Visitados, Pais, N) :-
     append(F2, Visitados2, Visitados3),
     buscar_a_estrela(F2, Visitados3, Pais2, N2), !.
 
-busca_a_estrela(Nodo) :- buscar_a_estrela([Nodo | _], [], [], 0).
+busca_a_estrela(Nodo) :- buscar_a_estrela([[Nodo, 0] | _], [], [], 0).
