@@ -255,8 +255,8 @@ diffLists([[N1, F1] | T1], RL, [[N1, F1] | T]) :- not(member([N1, _], RL)), !, d
 diffLists([[N1, _] | T1], RL, L) :- member([N1, _], RL), !, diffLists(T1, RL, L).
 
 mais_barato([N1, Custo1], [N2, Custo2]) :-
-    h_man(N1, H1),
-    h_man(N2, H2),
+    h_fora_do_lugar(N1, H1),
+    h_fora_do_lugar(N2, H2),
     Custo1 + H1 < Custo2 + H2.
 
 ordenar(Nodo, [], [Nodo]).
@@ -276,17 +276,12 @@ encontrar_pai(Nodo, [H | T], PaiNodo) :-
 
 gerar_caminho(Nodo, Pais, Caminho) :-
     not(encontrar_pai(Nodo, Pais, _)),
-    escrever_lista(Caminho).
+    write(Caminho), nl.
 gerar_caminho(Nodo, Pais, Caminho) :-  
     encontrar_pai(Nodo, Pais, PaiNodo),
     acao(PaiNodo, Acao, Nodo),
     append([Acao], Caminho, Caminho2),
     gerar_caminho(PaiNodo, Pais, Caminho2), !.
-
-escrever_lista([]).
-escrever_lista([H | T]) :-
-    write(H), nl,
-    escrever_lista(T).
 
 adicionar_pais(_, [], Pais, Pais).
 adicionar_pais([Nodo, Custo], [[H, _] | T], Pais, Pais3) :-
