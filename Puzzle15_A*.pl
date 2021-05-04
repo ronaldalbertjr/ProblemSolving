@@ -214,8 +214,9 @@ final_pos(12, (3,4)).
 final_pos(13, (4,1)).
 final_pos(14, (4,2)).
 final_pos(15, (4,3)).
-final_pos(-1, (4,4)).    
 
+dist_man(_, -1, Dist) :-
+    Dist is 0.
 dist_man((X,Y), A, Dist) :-
     final_pos(A, (Xf,Yf)),
     abs(X-Xf, Dist_x),
@@ -255,8 +256,8 @@ diffLists([[N1, F1] | T1], RL, [[N1, F1] | T]) :- not(member([N1, _], RL)), !, d
 diffLists([[N1, _] | T1], RL, L) :- member([N1, _], RL), !, diffLists(T1, RL, L).
 
 mais_barato([N1, Custo1], [N2, Custo2]) :-
-    h_fora_do_lugar(N1, H1),
-    h_fora_do_lugar(N2, H2),
+    h_man(N1, H1),
+    h_man(N2, H2),
     Custo1 + H1 < Custo2 + H2.
 
 ordenar(Nodo, [], [Nodo]).
