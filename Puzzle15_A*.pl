@@ -150,6 +150,7 @@ acao([[B, C, D, E], [F, G, H, I], [-1, J, K, L], [A, M, N, O]],
 acao([[B, C, D, E], [F, G, H, I], [J, K, L, M], [-1, A, N, O]], 
      esquerda42, 
      [[B, C, D, E], [F, G, H, I], [J, K, L, M], [A, -1, N, O]]).
+
 acao([[B, C, D, E], [F, G, H, I], [J, K, L, M], [N, A, -1, O]], 
      direita42, 
      [[B, C, D, E], [F, G, H, I], [J, K, L, M], [N, -1, A, O]]).
@@ -225,13 +226,14 @@ diffLists([], _, []) :- !.
 diffLists([H1 | T1], RL, [H1 | T]) :- not(member(H1, RL)), !, diffLists(T1, RL, T).
 diffLists([H1 | T1], RL, L) :- member(H1, RL), !, diffLists(T1, RL, L).
 
+
 mais_barato(N1, N2) :-
-    h_man(N1, R1),
-    h_man(N2, R2),
-    R1 < R2.
+    h_man(N1, H1),
+    h_man(N2, H2),
+    H1 < H2.
 
 ordenar(Nodo, [], [Nodo]).
-ordenar(Nodo,[H|T],[Nodo, H|T]) :- mais_barato(Nodo,H), !.
+ordenar(Nodo,[H|T],[Nodo, H|T]) :- mais_barato(Nodo, H), !.
 ordenar(Nodo,[Nodo1|R],[Nodo1|S]) :- ordenar(Nodo,R,S), !.
 adicionar_a_fronteira([], F3, F3).    
 adicionar_a_fronteira([H | T], F1, F3) :-
@@ -251,11 +253,11 @@ escrever_lista([H | T]) :-
 
 gerar_caminho(Nodo, Pais, Caminho) :-
     not(encontrar_pai(Nodo, Pais, _)),
-    append([Nodo], Caminho, Caminho2),
-    escrever_lista(Caminho2).
-gerar_caminho(Nodo, Pais, Caminho) :-
-    append([Nodo], Caminho, Caminho2),
+    escrever_lista(Caminho).
+gerar_caminho(Nodo, Pais, Caminho) :-  
     encontrar_pai(Nodo, Pais, PaiNodo),
+    acao(PaiNodo, Acao, Nodo),
+    append([Acao], Caminho, Caminho2),
     gerar_caminho(PaiNodo, Pais, Caminho2), !.
 
 adicionar_pais(_, [], Pais, Pais).
@@ -263,20 +265,19 @@ adicionar_pais(Nodo, [H | T], Pais, Pais3) :-
     append([(H, Nodo)], Pais, Pais2),
     adicionar_pais(Nodo, T, Pais2, Pais3).
 
-buscar_a_estrela([Nodo | _], _, Pais) :- 
+buscar_a_estrela([Nodo | _], _, Pais, N) :- 
     objetivo(Nodo),
-    gerar_caminho(Nodo, Pais, []).
+    gerar_caminho(Nodo, Pais, []),
+    write('Foram gerados '), write(N), write(' Nó(s)').
 
-buscar_a_estrela([Nodo | F1], Visitados, Pais) :-
+buscar_a_estrela([Nodo | F1], Visitados, Pais, N) :-
+    N2 is N + 1,
     append([Nodo], Visitados, Visitados2),
     vizinho(Nodo, V),
     diffLists(V, Visitados2, V2),
     adicionar_pais(Nodo, V2, Pais, Pais2),
     adicionar_a_fronteira(V2, F1, F2),
     append(F2, Visitados2, Visitados3),
-    write(Nodo), nl,
-    buscar_a_estrela(F2, Visitados3, Pais2), !.
+    buscar_a_estrela(F2, Visitados3, Pais2, N2), !.
 
-busca_a_estrela(Nodo) :- buscar_a_estrela([Nodo | _], [], []).
-    
-    
+busca_a_estrela(Nodo) :- buscar_a_estrela([Nodo | _], [], [], 0).
