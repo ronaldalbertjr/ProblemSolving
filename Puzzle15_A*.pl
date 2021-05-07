@@ -178,11 +178,13 @@ acao([[B, C, D, E], [F, G, H, I], [J, K, L, -1], [M, N, O, A]],
      cima44,
      [[B, C, D, E], [F, G, H, I], [J, K, L, A], [M, N, O, -1]]).
 
+%Regra para auxiliar na heurística de contagem de peças fora do lugar
 diferente(A, B, Res, ResFinal) :-
     not(=(A,  B)), !,
     ResFinal is Res + 1.
 diferente(A, A, Res, Res).
 
+%Heurística de peças fora do lugar
 h_fora_do_lugar([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, _]], Res) :-
     diferente(A, 1, 0, Res2),
     diferente(B, 2, Res2, Res3),
@@ -200,6 +202,7 @@ h_fora_do_lugar([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, _]], Res) :
     diferente(N, 14, Res14, Res15),
     diferente(O, 15, Res15, Res).
 
+%Predicados para auxiliarna heurística de distância manhattan
 final_pos(1, (1,1)).
 final_pos(2, (1,2)).
 final_pos(3, (1,3)).
@@ -216,6 +219,7 @@ final_pos(13, (4,1)).
 final_pos(14, (4,2)).
 final_pos(15, (4,3)).
 
+%Calculo da distância manhattan para uma peça específico
 dist_man(_, -1, Dist) :-
     Dist is 0.
 dist_man((X,Y), A, Dist) :-
@@ -224,6 +228,7 @@ dist_man((X,Y), A, Dist) :-
     abs(Y-Yf, Dist_y),
     Dist is Dist_x + Dist_y.
 
+%Calculo da heurística manhattan para cada um das peças e depois soma de todos os resultados
 h_man([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, P]], Res) :-
     dist_man((1,1), A, Dist_A),
     dist_man((1,2), B, Dist_B),
@@ -243,39 +248,51 @@ h_man([[A, B, C, D], [E, F, G, H], [I, J, K, L], [M, N, O, P]], Res) :-
     dist_man((4,4), P, Dist_P),
     Res is Dist_A + Dist_B + Dist_C + Dist_D + Dist_E + Dist_F + Dist_G + Dist_H + Dist_I + Dist_J + Dist_K + Dist_L + Dist_M + Dist_N + Dist_O + Dist_P.
 
+%Regra para atribuir custo aos vizinhos gerados de um nó
 gerar_vizinho_com_custo([], _, []).
 gerar_vizinho_com_custo([H | T], C, [[H, R]| T1]) :-
     R is C + 1,
     gerar_vizinho_com_custo(T, C, T1).
 
+%Regra para gerar os vizinhos
 vizinho([N, C], FilhosN) :-
     findall(Y, acao(N, _, Y), FN),
     gerar_vizinho_com_custo(FN, C, FilhosN).
 
+%Regra de diferença de listas
+%Usada para não visitar estados repetidos
 diffLists([], _, []) :- !.
 diffLists([[N1, F1] | T1], RL, [[N1, F1] | T]) :- not(member([N1, _], RL)), !, diffLists(T1, RL, T).
 diffLists([[N1, _] | T1], RL, L) :- member([N1, _], RL), !, diffLists(T1, RL, L).
 
+%Comparador mais barato para checar qual o nó possui
+%o menor f (Custo + Heurística).
 mais_barato([N1, Custo1], [N2, Custo2]) :-
     h_man(N1, H1),
     h_man(N2, H2),
     Custo1 + H1 < Custo2 + H2.
 
+%Ordenador dos nodos tendo como referência a regra mais_barato
 ordenar(Nodo, [], [Nodo]).
 ordenar(Nodo,[H|T],[Nodo, H|T]) :- mais_barato(Nodo, H), !.
 ordenar(Nodo,[Nodo1|R],[Nodo1|S]) :- ordenar(Nodo,R,S), !.
 
+%Regra para adicionar a fronteira de nós a serem expandidos
 adicionar_a_fronteira([], F3, F3).
 adicionar_a_fronteira([H | T], F1, F3) :-
     ordenar(H, F1, F2),
     adicionar_a_fronteira(T, F2, F3), !.
 
+%Regra para encontar o pai de determinado nó dentro da lista de pais, possibilitando construir o caminho.
 encontrar_pai(Nodo, [H | _], PaiNodo) :-
     H = (Nodo, PaiNodo), !.
 encontrar_pai(Nodo, [H | T], PaiNodo) :-
     not(=(H, (Nodo, PaiNodo))),
     encontrar_pai(Nodo, T, PaiNodo).
 
+%Regra para gerar o caminho entre determinado nó e o seu pai, indo de pai em pai, encontrados
+%na lista de pais e parando quando um nó já não tem mais um pai presente na lista,
+%o que indica que ele é a raiz.
 gerar_caminho(Nodo, Pais, Caminho) :-
     not(encontrar_pai(Nodo, Pais, _)),
     write(Caminho), nl.
@@ -285,6 +302,8 @@ gerar_caminho(Nodo, Pais, Caminho) :-
     append([Acao], Caminho, Caminho2),
     gerar_caminho(PaiNodo, Pais, Caminho2), !.
 
+%A lista de pais é formada por tuplas da cara (Nodo, Pai), sendo Nodo qualquer nó da árvore
+%e Pai, o seu nó gerador.
 adicionar_pais(_, [], Pais, Pais).
 adicionar_pais([Nodo, Custo], [[H, _] | T], Pais, Pais3) :-
     append([(H, Nodo)], Pais, Pais2),
@@ -318,6 +337,15 @@ busca_a_estrela(Nodo) :-
     not(checar_se_existe_caminho(L, 0, PosB)), !,
     write('É impossível resolver o problema do 15-puzzle para esse tabuleiro').
 
+/* Definição dos tabuleiros para o problema
+ * */
+tabuleiro([[ 2,  6,  3,  4], [ 1, 11,  -1,  7], [ 5, 14, 10,  8], [ 9, 13, 15, 12]]).
+tabuleiro([[-1, 6, 2, 3], [1, 5, 8, 4], [9, 10, 7, 11], [13, 14, 15, 12]]).
+inicio(A) :- tabuleiro(A), busca_a_estrela(A).
+
+/*Predicados para derterminar a linha onde está o espaço vazio, 
+ * Essa determinação faz parte da avaliação se existe ou não solução.
+ */
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, -1, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, -1, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, _, -1, _], 1) :- !.
@@ -328,6 +356,10 @@ posicao_b([_, _, _, _, _, _, -1, _, _, _, _, _, _, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, -1, _, _, _, _, _, _, _, _], 1) :- !.
 posicao_b([_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _], 0).
 
+/*A seguinte regra conta a quantidade de inversões no tabuleiro,
+ * ou seja, quantas vezes uma peça precisar ser invertido por outra 
+ * para se chegar a solução.
+ */
 count_inversions(-1, _, 0).
 count_inversions(_, [], 0).
 count_inversions(X, [-1 | T], R):-
@@ -342,6 +374,12 @@ count_inversions(X, [H | T], R):-
     count_inversions(X, T, R1),
     R is R1+1.
 
+/*
+ * Para determinar se existe solução para o problema,
+ * precisamos comparar o numero de inversões com o número da
+ * linha em que se encontra o espaço vazio, existe solução, 
+ * se e somente se, a paridade desses dois valores é distinta.
+ */
 checar_se_existe_caminho([], R, PosB) :-
     R1 is PosB mod 2,
     R2 is R mod 2,
@@ -350,3 +388,34 @@ checar_se_existe_caminho([H | T], Res, PosB):-
     count_inversions(H, T, R),
     Res2 is Res + R,
     checar_se_existe_caminho(T, Res2, PosB), !.
+
+/* Realizando a busca no tabuleiro [[ 2,  6,  3,  4], 
+ * 								  [ 1, 11,  -1,  7], 
+ * 								  [ 5, 14, 10,  8], 
+ * 								  [ 9, 13, 15, 12]]
+ * Com caminho para solução: [direita22, baixo12, direita11, cima21, cima31, cima41, esquerda42, baixo32, esquerda33, baixo23, esquerda24, cima34, cima44]
+ *
+ * 
+ * Ultilizando a heurística de peças fora do lugar tivemos 18 Nós gerados pela busca.
+ * 
+ * Ultilizando a heurística de distância manhattan tivemos 16 Nós gerados pela busca.
+ * --------------------------------------------------------------------------------------------------------------------------------------
+ * Realizando a busca no tabuleiro [[-1, 6, 2, 3],
+ *                                  [1, 5, 8, 4],
+ *                                  [9, 10, 7, 11],
+ *                                  [13, 14, 15, 12]]
+ * Com caminho para a solução: [cima21, esquerda22, baixo12, esquerda13, esquerda14, cima24, direita23, cima33, esquerda34, cima44]
+ *
+ *
+ * Ultilizando a heurística de peças fora do lugar tivemos 10 Nós gerados pela busca.
+ * 
+ * Ultilizando a heurística da distância manhattan tivemos 10 Nós gerados pela busca.
+ *------------------------------------------------------------------------------------------------------------------------------------
+ * Realizando a busca no tabuleiro [[6, 2, 4, 3],
+ *								   [1, 11, -1, 7],
+ *                                 [5, 14, 10, 8],
+ *                                 [9, 13, 15, 12]]
+ * 
+ * Ultilizando a heurística de peças fora do lugar tivemos 18 Nós gerados pela busca
+ * Ultilizando a heurística de distância manhattan tivemos 1680 Nós gerados pela busca
+*/
