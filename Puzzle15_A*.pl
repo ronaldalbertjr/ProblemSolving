@@ -416,6 +416,6 @@ checar_se_existe_caminho([H | T], Res, PosB):-
  *                                 [5, 14, 10, 8],
  *                                 [9, 13, 15, 12]]
  * 
- * Ultilizando a heurística de peças fora do lugar tivemos 18 Nós gerados pela busca
- * Ultilizando a heurística de distância manhattan tivemos 1680 Nós gerados pela busca
+ * Ultilizando a heurística de peças fora do lugar o algoritmo rodou por 4 horas e estourou a stack.
+ * Ultilizando a heurística de distância manhattan o algoritmo rodou por 4 minutos tivemos 1680 Nós gerados pela busca.
 */
