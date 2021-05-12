@@ -200,7 +200,7 @@ def SimulatedAnnealing(TempInicial, MaxIt, alpha, n):
 
 results = []
 for i in range(10000):
-    x = SimulatedAnnealing(20, 100, 0.9, 8)
+    x = SimulatedAnnealing(10000, 100, 0.9, 8)
     results.append(x.avaliarTabuleiro())
     
 print(np.mean(results).round(2))
@@ -226,6 +226,30 @@ print(np.std(results).round(2))
 # Média: 0.78
 # Desvio Padrão: 0.59
 #
+# Entrada 5: TempInicial = 50; MaxIt = 100; alpha = 0.8
+# Média: 0.73
+# Desvio Padrão: 0.57
+#
+# Entrada 6: TempInicial = 100; MaxIt = 100; alpha = 0.9
+# Média: 0.53
+# Desvio Padrão: 0.52   
+#
+# Entrada 7: TempInicial = 50; MaxIt = 100; alpha = 0.1
+# Média: 0.96
+# Desvio Padrão: 0.69
+#
+# Entrada 8: TempInicial = 1000; MaxIt = 100; alpha = 0.9
+# Média: 0.47
+# Desvio Padrão: 0.51
+#
+# Entrada 9: TempInicial = 1000; MaxIt = 1000; alpha = 0.9
+# Média: 0.45
+# Desvio Padrão: 0.51
+#
+# Entrada 10: TempInicial = 10000; MaxIt = 100; alpha = 0.9
+# Média: 0.43
+# Desvio Padrão: 0.5
+
 #Tabuleiro 8x8:
 #
 # Entrada 1: TempInicial = 5; MaxIt = 20; alpha = 0.1
@@ -243,4 +267,28 @@ print(np.std(results).round(2))
 # Entrada 4: TempInicial = 20; MaxIt = 100; alpha = 0.8
 # Média: 2.25
 # Desvio Padrão: 0.92
-    
+#
+# Entrada 5: TempInicial = 50; MaxIt = 100; alpha = 0.8
+# Média: 2.24
+# Desvio Padrão: 0.83
+#
+# Entrada 6: TempInicial = 100; MaxIt = 100; alpha = 0.9
+# Média: 2.27
+# Desvio Padrão: 0.82   
+#
+# Entrada 7: TempInicial = 50; MaxIt = 100; alpha = 0.1
+# Média: 2.27
+# Desvio Padrão: 0.95
+#
+# Entrada 8: TempInicial = 1000; MaxIt = 100; alpha = 0.9
+# Média: 2.47
+# Desvio Padrão: 0.82
+#
+# Entrada 9: TempInicial = 1000; MaxIt = 1000; alpha = 0.9
+# Média: 2.12
+# Desvio Padrão: 0.82
+#
+# Entrada 10: TempInicial = 10000; MaxIt = 100; alpha = 0.9
+# Média: 2.89
+# Desvio Padrão: 0.81
+#
